@@ -1,0 +1,33 @@
+{
+    "name": "ncd-red-pca9685",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"The test.js file may be used for testing, but configuration of the I2C connection is required.\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ncd-io/ncd-red-pca9685"
+    },
+    "keywords": [
+        "PCA9685",
+        "ncd",
+        "i2c"
+    ],
+    "author": "Trey Felton",
+    "license": "MIT",
+    "node-red": {
+        "nodes": {
+            "ncd-lower_chip": "PCA9685.js"
+        }
+    },
+    "dependencies": {
+        "ncd-red-comm": "^1.5.1",
+        "promise-queue": "^2.2.5"
+    },
+	"bugs": {
+	    "url": "https://github.com/ncd-io/ncd-red-pca9685/issues"
+	},
+	"homepage": "https://github.com/ncd-io/ncd-red-pca9685#readme"
+}

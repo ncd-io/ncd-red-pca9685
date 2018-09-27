@@ -1,0 +1,102 @@
+<script type="text/javascript">
+	RED.comms.subscribe('ncd-dependencies', (t,d) => {
+
+		RED.notify(d);
+	})
+    RED.nodes.registerType('ncd-pca9685',{
+        category: 'NCD',
+        color: '#a6bbcf',
+        defaults: {
+            name: {value: ""},
+			connection: {value: "", type: "ncd-comm"},
+			interval: {value: 0, validate: RED.validators.number()},
+			range: {value: 0, validate: RED.validators.number()},
+			sType: {value: 'd'},
+			pScale: {value: 1, validate: RED.validators.number()},
+			tempScale: {value: 'c'}
+        },
+        inputs:1,
+        outputs:2,
+		icon: "serial.png",
+		paletteLabel: "PCA9685",
+        label: function() {
+            return this.name || "PCA9685";
+        },
+		outputLabels: function(i){
+			return i == 0 ? 'Pressure' : 'Temperature';
+		},
+    });
+</script>
+
+<script type="text/x-red" data-template-name="ncd-pca9685">
+	<div class="form-row">
+		<label for="node-input-name"><i class="icon-tag"></i> Name</label>
+		<input type="text" id="node-input-name" placeholder="Name">
+	</div>
+	<div class="form-row">
+		<label for="node-input-connection"><i class="icon-tag"></i> I2C Connection</label>
+		<select id="node-input-connection"></select>
+	</div>
+	<div class="form-row">
+		<label for="node-input-interval"><i class="icon-repeat"></i> Interval</label>
+		<input type="text" id="node-input-interval" placeholder="Interval">
+	</div>
+	<h4>Chip Selection</h4>
+	<div class="form-row">
+		<label for="node-input-range"><i class="icon-tag"></i> Range</label>
+		<select id="node-input-range">
+			<option value="0">0000</option>
+			<option value="1">0001</option>
+			<option value="3">0003</option>
+			<option value="8">0008</option>
+			<option value="15">0015</option>
+			<option value="30">0030</option>
+			<option value="50">0050</option>
+			<option value="150">0150</option>
+			<option value="300">0300</option>
+			<option value="600">0600</option>
+			<option value="1000">1000</option>
+		</select>
+	</div>
+	<div class="form-row">
+		<label for="node-input-sType"><i class="icon-tag"></i> Sensor Type</label>
+		<select id="node-input-sType">
+			<option value="d">D</option>
+			<option value="d-b">D-B</option>
+			<option value="a">A</option>
+			<option value="b">B</option>
+		</select>
+	</div>
+
+	<div class="form-row">
+		<label for="node-input-pScale"><i class="icon-tag"></i> Pressure Scale</label>
+		<select id="node-input-pScale">
+			<option value="100">Pa</option>
+			<option value="1">mBar/hPa</option>
+			<option value=".1">kPa</option>
+			<option value=".001">bar</option>
+			<option value=".0001">MPa</option>
+			<option value=".014503773773">PSI</option>
+		</select>
+	</div>
+	<div class="form-row">
+		<label for="node-input-tempScale"><i class="icon-tag"></i> Temperature Scale</label>
+		<select id="node-input-tempScale">
+			<option value="c">Celsius</option>
+			<option value="f">Fahrenheit</option>
+			<option value="k">Kelvin</option>
+		</select>
+	</div>
+</script>
+
+<script type="text/x-red" data-help-name="ncd-pca9685">
+    <h3>I2C Connection</h3>
+	<p>Configure the connection you want to use to communicate to your I2C device. Native I2C and USB to I2C converters are supported.</p>
+	<h3>Interval</h3>
+	<p>The interval defines the time between status checks. It is in milliseconds, and the interval starts after the previous check has finished.</p>
+	<h3>Chip Selection</h3>
+	<p>The range and type of the chip are part of the part number, e.g. "PCA9685-0003-D-B" has a range of "0003" and a type of "D-B"</p>
+
+	<h3>Output Values</h3>
+	<p>The output will send an object as the payload keyed by the value, <code>{temperature: 77.234, pressure: 1.54356}</code>.</p>
+</script>
