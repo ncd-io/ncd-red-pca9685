@@ -15,7 +15,7 @@
         "ncd",
         "i2c"
     ],
-    "author": "Trey Felton",
+    "author": "Jason Smedley",
     "license": "MIT",
     "node-red": {
         "nodes": {
@@ -23,11 +23,10 @@
         }
     },
     "dependencies": {
-        "ncd-red-comm": "^1.5.1",
-        "promise-queue": "^2.2.5"
+        "ncd-red-comm": "^1.7.2"
     },
-	"bugs": {
-	    "url": "https://github.com/ncd-io/ncd-red-pca9685/issues"
-	},
-	"homepage": "https://github.com/ncd-io/ncd-red-pca9685#readme"
+    "bugs": {
+        "url": "https://github.com/ncd-io/ncd-red-pca9685/issues"
+    },
+    "homepage": "https://github.com/ncd-io/ncd-red-pca9685#readme"
 }

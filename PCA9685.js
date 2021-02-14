@@ -1,100 +1,122 @@
 "use strict";
 
 const PCA9685 = require("./index.js");
-const Queue = require("promise-queue");
 
 module.exports = function(RED){
-	var sensor_pool = {};
-	var loaded = [];
+  let driver_pool = {};
 
-	function NcdI2cDeviceNode(config){
-		RED.nodes.createNode(this, config);
+  function NcdI2cDeviceNode(config){
+    RED.nodes.createNode(this, config);
 
-		//set the address from config
-		this.addr = parseInt(config.addr);
+    //set the address from config
+    config.address = parseInt(config.address);
+    this.addr = config.address;
 
-		//set the interval to poll from config
-		this.interval = parseInt(config.interval);
+    //set the channel count from config
+    this.channelCount = parseInt(config.channelCount);
 
-		//remove sensor reference if it exists
-		if(typeof sensor_pool[this.id] != 'undefined'){
-			//Redeployment
-			clearTimeout(sensor_pool[this.id].timeout);
-			delete(sensor_pool[this.id]);
-		}
+    //remove sensor reference if it exists
+    if(typeof driver_pool[this.id] != 'undefined'){
+      //Redeployment
+      driver_pool[this.id].sensor.stop();
+      delete(driver_pool[this.id]);
+    }
 
-		//create new sensor reference
-		this.sensor = new PCA9685(this.addr, RED.nodes.getNode(config.connection).i2c, config);
+    this.warn(RED.nodes.getNode(config.connection).i2c);
+    this.warn(config);
 
-		var node = this;
+    //create new sensor reference
+    this.sensor = new PCA9685(config.address, RED.nodes.getNode(config.connection).i2c, config);
 
-		sensor_pool[this.id] = {
-			sensor: this.sensor,
-			polling: false,
-			timeout: 0,
-			node: this
-		};
+    let node = this;
 
-		//Display device status on node
-		function device_status(){
-			if(!node.sensor.initialized){
-				node.status({fill:"red",shape:"ring",text:"disconnected"});
-				return false;
-			}
-			node.status({fill:"green",shape:"dot",text:"connected"});
-			return true;
-		}
+    driver_pool[this.id] = {
+      sensor: this.sensor,
+      node: this
+    };
 
-		//send telemetry data out the nodes output
-		function send_payload(_status){
-			var msg = [
-				{topic: 'pressure', payload: _status.pressure},
-				{topic: 'temperature', payload: _status.temperature},
-			];
-			node.send(msg);
-		}
+    //Display device status on node
+    function device_status(){
+      if(node.sensor.status.initialized === false){
+        node.status({fill:"red",shape:"ring",text:"disconnected"});
+        return false;
+      }
+      node.status({fill:"green",shape:"dot",text:"connected"});
+      return true;
+    }
 
-		//get the current telemetry data
-		(get_status=function(repeat, force){
-			if(repeat) clearTimeout(sensor_pool[node.id].timeout);
-			if(device_status(node)){
-				node.sensor.get().then(send_payload).catch((err) => {
-					node.send({error: err});
-				}).then(() => {
-					if(repeat && node.interval){
-						clearTimeout(sensor_pool[node.id].timeout);
-						sensor_pool[node.id].timeout = setTimeout(() => {
-							if(typeof sensor_pool[node.id] != 'undefined') get_status(true);
-						}, sensor_pool[node.id].node.interval);
-					}else{
-						sensor_pool[node.id].polling = false;
-					}
-				});
-			}else{
-				sensor_pool[node.id].timeout = setTimeout(() => {
-					node.sensor.init();
-					if(typeof sensor_pool[node.id] != 'undefined') get_status(true);
-				}, 3000);
-			}
-		})(node.interval && !sensor_pool[node.id].polling);
+    //send telemetry data out the nodes output
+    function send_payload(_status){
+      let msg = [
+        {topic: 'chip_status', payload: node.sensor.status.initialized}
+      ];
 
-		//if status is requested, fetch it
-		node.on('input', (msg) => {
-			if(msg.topic == 'get_status'){
-				get_status(false);
-			}
-		});
+      //Figure out how outputs are linked
+      for (let sensor of node.sensor.status.channels) {
+        msg.push({
+          topic: `channel_1_pwm`,
+          payload: sensor
+        })
+      }
 
-		//if node is removed, kill the sensor object
-		node.on('close', (removed, done) => {
-			if(removed){
-				clearTimeout(sensor_pool[node.id].timeout);
-				delete(sensor_pool[node.id]);
-			}
-			done();
-		});
-	}
+      node.send(msg);
+    }
 
-	//register the node with Node-RED
-	RED.nodes.registerType("ncd-pca9685", NcdI2cDeviceNode);
+    function getStatus() {
+      return node.sensor.status;
+    }
+
+    async function emitStatus() {
+      let status = await getStatus();
+      let msg = [
+        {topic: 'status', payload: JSON.stringify(node.sensor.status)}
+      ];
+      node.send(msg);
+    }
+
+    node.on('input', async (msg) => {
+      //if status is requested, fetch it
+      if(msg.topic === `get_status`){
+        return emitStatus();
+      }
+
+      //Set channel PWM range
+      if(msg.topic === `channel_pwm`) {
+        await node.sensor.setPwm(msg.payload.channel, msg.payload.pulseOn, msg.payload.pulseOff);
+        return emitStatus();
+      }
+
+      //Set channel PWM pulse
+      if(msg.topic.indexOf(`channel_pulse`) === 0) {
+        await node.sensor.setPulse(msg.payload.channel, msg.payload.pulse);
+        return emitStatus();
+      }
+
+      //Set PWM Chip Pre-Scale Value
+      if(msg.topic === `set_pwm_frequency`) {
+        await node.sensor.setPwmFrequency(msg.payload);
+        return emitStatus();
+      }
+
+      //Set PWM Chip Pre-Scale Value
+      if(msg.topic === `stop`) {
+        await node.sensor.stop();
+        return emitStatus();
+      }
+    });
+
+    //if node is removed, kill the sensor object
+    node.on('close', async (removed, done) => {
+      if(removed){
+        await driver_pool[this.id].sensor.stop();
+        delete(driver_pool[node.id]);
+      }
+      done();
+    });
+
+    emitStatus();
+  }
+
+  //register the node with Node-RED
+  RED.nodes.registerType("ncd-pca9685", NcdI2cDeviceNode);
 };
