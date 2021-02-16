@@ -1,7 +1,6 @@
-###This text and image should be replaced:
-This library provides a class for the PCA9685, it relies on the ncd-red-comm library for communication, and includes a node-red node for PCA9685. AMS5812 pressure sensors are a series of high-precision OEM sensors with a digital I²C-interface. [Ncd.io](https://ncd.io) manufactures several mini-modules that utilize these sensors for different applications. You can see a [list here](https://store.ncd.io/?post_type=product&s=ams5812&site_select=https%3A%2F%2Fstore.ncd.io%3Fpost_type%3Dproduct).
+This library provides a class for the PCA9685, it relies on the ncd-red-comm library for communication, and includes a node-red node for PCA9685.
 
-[![AMS5812](./AMS5812.png)](https://store.ncd.io/?post_type=product&s=ams5812&site_select=https%3A%2F%2Fstore.ncd.io%3Fpost_type%3Dproduct)
+[Picture of PCA9685 8 Channel FET Driver Board](https://media.ncd.io/sites/2/20170721150842/PCA9685_PEPWM8W8I12V_1.png)
 
 ### Installation
 

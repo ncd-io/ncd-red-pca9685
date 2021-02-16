@@ -1,31 +1,27 @@
 <script type="text/javascript">
-	RED.comms.subscribe('ncd-dependencies', (t,d) => {
+  RED.comms.subscribe('ncd-dependencies', (t,d) => {
 
-		RED.notify(d);
-	})
-    RED.nodes.registerType('ncd-pca9685',{
-        category: 'NCD',
-        color: '#a6bbcf',
-        defaults: {
-            name: {value: ""},
-			connection: {value: "", type: "ncd-comm"},
-			interval: {value: 0, validate: RED.validators.number()},
-			range: {value: 0, validate: RED.validators.number()},
-			sType: {value: 'd'},
-			pScale: {value: 1, validate: RED.validators.number()},
-			tempScale: {value: 'c'}
-        },
-        inputs:1,
-        outputs:2,
-		icon: "serial.png",
-		paletteLabel: "PCA9685",
-        label: function() {
-            return this.name || "PCA9685";
-        },
-		outputLabels: function(i){
-			return i == 0 ? 'Pressure' : 'Temperature';
-		},
-    });
+    RED.notify(d);
+  })
+  RED.nodes.registerType('ncd-pca9685',{
+    category: 'NCD',
+    color: '#a6bbcf',
+    defaults: {
+      name: {value: ""},
+      connection: {value: "", type: "ncd-comm"},
+      address: {value: 64, validate: RED.validators.number()}, //0x69 = 105
+      frequency: {value: 55, validate: RED.validators.number()}, //Value in Hz
+      channels: {value: 8, validate: RED.validators.number()} //Count of Channels connected to PCA9685
+    },
+    inputs:1,
+    outputs:1,
+    icon: "serial.png",
+    paletteLabel: "PCA9685",
+    label: function() {
+      return this.name || "PCA9685";
+    },
+    outputLabels: ['PWM Status'],
+  });
 </script>
 
 <script type="text/x-red" data-template-name="ncd-pca9685">
@@ -38,54 +34,16 @@
 		<select id="node-input-connection"></select>
 	</div>
 	<div class="form-row">
-		<label for="node-input-interval"><i class="icon-repeat"></i> Interval</label>
-		<input type="text" id="node-input-interval" placeholder="Interval">
-	</div>
-	<h4>Chip Selection</h4>
-	<div class="form-row">
-		<label for="node-input-range"><i class="icon-tag"></i> Range</label>
-		<select id="node-input-range">
-			<option value="0">0000</option>
-			<option value="1">0001</option>
-			<option value="3">0003</option>
-			<option value="8">0008</option>
-			<option value="15">0015</option>
-			<option value="30">0030</option>
-			<option value="50">0050</option>
-			<option value="150">0150</option>
-			<option value="300">0300</option>
-			<option value="600">0600</option>
-			<option value="1000">1000</option>
-		</select>
+		<label for="node-input-address"><i class="icon-repeat"></i> I2C Address</label>
+		<input type="number" id="node-input-address" placeholder="Address">
 	</div>
 	<div class="form-row">
-		<label for="node-input-sType"><i class="icon-tag"></i> Sensor Type</label>
-		<select id="node-input-sType">
-			<option value="d">D</option>
-			<option value="d-b">D-B</option>
-			<option value="a">A</option>
-			<option value="b">B</option>
-		</select>
-	</div>
-
-	<div class="form-row">
-		<label for="node-input-pScale"><i class="icon-tag"></i> Pressure Scale</label>
-		<select id="node-input-pScale">
-			<option value="100">Pa</option>
-			<option value="1">mBar/hPa</option>
-			<option value=".1">kPa</option>
-			<option value=".001">bar</option>
-			<option value=".0001">MPa</option>
-			<option value=".014503773773">PSI</option>
-		</select>
+		<label for="node-input-frequency"><i class="icon-repeat"></i> Frequency</label>
+		<input type="number" id="node-input-frequency" placeholder="Frequency">
 	</div>
 	<div class="form-row">
-		<label for="node-input-tempScale"><i class="icon-tag"></i> Temperature Scale</label>
-		<select id="node-input-tempScale">
-			<option value="c">Celsius</option>
-			<option value="f">Fahrenheit</option>
-			<option value="k">Kelvin</option>
-		</select>
+		<label for="node-input-channels"><i class="icon-repeat"></i> Channel Count</label>
+		<input type="number" id="node-input-channels" min=1 max=16 placeholder="Channel Count">
 	</div>
 </script>
 
